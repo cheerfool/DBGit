@@ -1,0 +1,87 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper, margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\begin{document}
+\begin{titlepage}
+\title{CPSC 504 Project Update \vspace{4 cm}}
+\date{\vspace{2 cm} February 26, 2015}
+
+\author{
+ \makebox[1.0\linewidth]{Laura Cang}\\cang@cs.ubc.ca\\
+  \and \makebox[1.0\linewidth]{Kailang Jiang}\\jiangkl@cs.ubc.ca\\
+  \and \makebox[1.0\linewidth]{Jessica Wong}\\jhmwong@cs.ubc.ca\\ 
+}
+\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+\newpage
+\section{What has been done so far}
+We have decided to focus on a portion of Arni's thesis \cite{arniThesis} as our project. Specifically, we have chosen to implement something that will help solve Scenario 1, a situation where there is a user who has pulled some data from the database and in the process has obtained a local copy of a table along with a copy of the schema mapping that relates how the columns in the local table relate to the columns in the table that is stored in the database. The user has then modified the data somehow by making some changes; the type of changes a user can make are limited to (i.e., adding a row, deleting a row, adding a column, deleting a column, updating a column name, or updating a value in a cell). As the user makes various changes, his/her actions will be tracked in the background in a transformation script. This transformation script will be written in some declarative language that we have not exactly determined yet (it will require more research into ETL languages). When the user wishes to push the local data and its various changes back to the database, he/she will be able to do so. On the back end, the transformation script will be executed as a set of instructions to the database in order to save the changes remotely; if there are schema changes to be made, these schema mapping changes will also be done at this time. The bulk of our project is going to focus on how this transformation script is defined along with how it will work with the schema mappings and what kind of output script will result from a user's push command.
+
+In our project, we wish to implement an interface that will allow the user to view the data he/she has pulled as well as conduct the various actions mentioned above. Our measure of success will be whether or not we can successfully complete Scenario 1 using our implementation. We will be focusing on trying to building an interface that can successfully transform data changes created by the user to a transformation script and using both the transformation script and the schema mapping to push correct changes to the datastore. We are not focusing on having a wondrously usable GUI nor will we be focusing on creating a script to pull/push data from a database to our interface or vice versa. 
+
+We plan to test with a database of 5 tables that have about 500 tuples altogether. This is anticipated to be one of the datasets that the CPSC 304 classes use for their project.
+
+\section{Future Work}
+If there is time, we will consider the situation where the user can pull data from more than one table, and perform data transformations on it.
+
+\section{What there is left to do}
+\begin{itemize}
+	\item{Define the type of transformations allowed in our scenario}
+	\item{Design decisions about the transformation language}
+	\item{Design how to maintain the mapping}
+	\item{Decide how to handle various actions}
+	\item{Decide what kind of output do we want when the user pushes}
+	\item{Decide how to push local updates to the remote server}
+	\item{Design and implement the interface}
+\end{itemize}
+
+\section{Roadblocks}
+\begin{itemize}
+	\item{Need data to test with}
+	\item{Choose or define a transformation language}
+\end{itemize} 
+
+\section{Related Work}
+One of the largest problems that we foresee is creating a transformation language to track all the possible data changes as well as how to propagate those changes correctly from one source to another. Hence, most of our related work focuses on systems that are similar or areas of work where we feel we can draw inspiration from how they tackled a similar problem to the one we are facing.
+
+\subsection{Data Sharing Systems}
+Data sharing situations are not new; there have been many collaborative data sharing systems (CDSS) \cite{ives2008orchestra, ives2005orchestra, karvounarakis2013collaborative}and data transformation language \cite{kandel2011wrangler, lakshmanan2001schemasql} created to try and address this issue. From CDSS systems, we believe we can examine how it handles schema mapping change propagations to inform our own design as this is exactly the same problem we are facing. 
+
+\subsection{Transformation Languages}
+As mentioned before, a large part of our project involves tracking the changes a user has made to the data. Transformation languages capture this information but we currently have no idea how to structure this transformation language. We are hoping to look at other transformation languages \cite{kandel2011wrangler, lakshmanan2001schemasql} and research related to transformation languages \cite{abiteboul1999tools, kandel2011wrangler, lakshmanan2001schemasql, raman2001potter} to see if there is a suitable one we can work off of. If we cannot find one suitable for our needs, we can use these languages to identify what principles are most important to have in a transformation language and implement them in our own version. We are leaning towards the first option rather than the second. 
+
+\subsection{Extraction, Transformation, and Loading (ETL)}
+Extraction, transformation, and loading (ETL) \cite{vassiliadis2009extraction}[and the red book] is the process of taking data from one source, changing it, and then putting it into a data warehouse. Although this is not exactly what we are doing, we can still examine how it is done to figure out how to best track the changes made to the data. One of the biggest problems we can foresee for our project is how we can track the various changes made to our data once the user has pulled a copy of the data to his/her interface. We believe that we can use some of the ETL principles to guide how we can best do this process.
+
+\subsection{View Maintenance}
+Currently we have chosen to only allow data from a single table be viewed in our interface. However, given that this project could be extended in the future to include viewing data that is from multiple tables, we are looking ahead at literature in the view maintenance area to try and predict what challenges our interface might face \cite{ agrawal1997efficient, agrawal2009asynchronous, gupta1999materialized, zhou2007lazy}. We also thought that we might be able to get some ideas on how often to push any possible schema mapping/schema changes as it seems to be a comparable problem to how materialized views need to push its changes to a remote database \cite{agrawal1997efficient, agrawal2009asynchronous, zhou2007lazy}. 
+
+\section{Timeline}
+\begin{tabular}{| l | l |}
+\hline
+Feb 22 - Feb 28 & Start literature review on data sharing systems and transformation languages\\
+\hline
+Mar 1 - Mar 7 & Literature review \\
+& NOTES: Jessica and Laura both gone for most of this week \\
+\hline
+Mar 8 - Mar 14 & Finish literature review on Monday\\
+& Start implementation\\
+\hline
+Mar 15 - Mar 21 & Finish implementation\\
+& Start testing\\
+\hline
+Mar 22 - Apr 4 & Finish testing\\
+& Start writeup and prepare for presentatino\\
+\hline
+Apr 5 - Apr 11 & Handin paper\\
+&\\
+\hline
+\end{tabular}
+\newpage
+\bibliographystyle{abbrv}
+\bibliography{504_Update}
+
+\end{document}
