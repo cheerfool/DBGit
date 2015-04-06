@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -59,9 +60,12 @@ public class gitFrame extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         myTable = new javax.swing.JTable();
         clearBtn = new javax.swing.JButton();
+        colNameTextField = new javax.swing.JTextField();
+        updColBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("CPSC 504 Project");
+        setResizable(false);
 
         addRowBtn.setText("Add row");
         addRowBtn.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -117,12 +121,24 @@ public class gitFrame extends javax.swing.JFrame {
         ));
         myTable.setToolTipText("");
         myTable.setColumnSelectionAllowed(true);
+        myTable.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(myTable);
 
         clearBtn.setText("Clear all");
         clearBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 clearBtnActionPerformed(evt);
+            }
+        });
+
+        colNameTextField.setHorizontalAlignment(javax.swing.JTextField.LEFT);
+        colNameTextField.setText("Column Name");
+
+        updColBtn.setText("Update Column");
+        updColBtn.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        updColBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updColBtnActionPerformed(evt);
             }
         });
 
@@ -136,12 +152,16 @@ public class gitFrame extends javax.swing.JFrame {
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 715, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(addColBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(addRowBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(addRowBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(delRowBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(delColBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(delRowBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(addColBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(colNameTextField)
+                            .addComponent(updColBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(clearBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -153,17 +173,19 @@ public class gitFrame extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(17, 17, 17)
+                .addGap(16, 16, 16)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(addRowBtn)
-                    .addComponent(delRowBtn)
                     .addComponent(loadBtn)
-                    .addComponent(clearBtn))
+                    .addComponent(clearBtn)
+                    .addComponent(colNameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(addColBtn))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(addColBtn)
                     .addComponent(delColBtn)
-                    .addComponent(pushBtn))
+                    .addComponent(pushBtn)
+                    .addComponent(delRowBtn)
+                    .addComponent(updColBtn))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(14, Short.MAX_VALUE))
@@ -254,8 +276,9 @@ public class gitFrame extends javax.swing.JFrame {
 //        TableColumnModel model = myTable.getColumnModel();
 //        int index= model.getColumnCount();
 //        model.addColumn(new TableColumn(index));
+        String header= colNameTextField.getText();
         DefaultTableModel model = (DefaultTableModel)myTable.getModel();
-        model.addColumn(null);
+        model.addColumn(header);
     }//GEN-LAST:event_addColBtnActionPerformed
 
     private void clearBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearBtnActionPerformed
@@ -263,6 +286,19 @@ public class gitFrame extends javax.swing.JFrame {
         myTable.setModel(new javax.swing.table.DefaultTableModel(
                         new Object [][]{}, new String []{} ));
     }//GEN-LAST:event_clearBtnActionPerformed
+
+    private void updColBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updColBtnActionPerformed
+        // TODO add your handling code here:
+        int index= myTable.getSelectedColumn();
+        if(index<0)
+            return;
+        String header= colNameTextField.getText();
+        //System.out.println(header+", ");
+        myTable.getColumnModel().getColumn(index).setHeaderValue(header);
+        myTable.updateUI();
+        //DefaultTableModel model = (DefaultTableModel)myTable.getModel();
+
+    }//GEN-LAST:event_updColBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -327,11 +363,13 @@ public class gitFrame extends javax.swing.JFrame {
     private javax.swing.JButton addColBtn;
     private javax.swing.JButton addRowBtn;
     private javax.swing.JButton clearBtn;
+    private javax.swing.JTextField colNameTextField;
     private javax.swing.JButton delColBtn;
     private javax.swing.JButton delRowBtn;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton loadBtn;
     private javax.swing.JTable myTable;
     private javax.swing.JButton pushBtn;
+    private javax.swing.JButton updColBtn;
     // End of variables declaration//GEN-END:variables
 }
