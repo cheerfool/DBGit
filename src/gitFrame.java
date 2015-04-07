@@ -6,14 +6,18 @@
 
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
 
 /**
  *
@@ -26,10 +30,24 @@ public class gitFrame extends javax.swing.JFrame {
      */
     String loadPath= "data.csv";
     String logPath= "log.script";
+    String pushPath= "data_new.csv";
     BufferedReader br;
     PrintWriter pw;
+    BufferedReader logbr;
+    
+    boolean sync= true;
+    boolean[] syncs= new boolean[100];
+    
+    ArrayList<String> headers;
+    ArrayList<ArrayList<String>> dataset;
+    //int nTempCol=0;
     
     public gitFrame() {
+        try {
+            pw = new PrintWriter(new FileOutputStream(logPath), true);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(gitFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }        
         initComponents();
     }
     
@@ -62,6 +80,7 @@ public class gitFrame extends javax.swing.JFrame {
         clearBtn = new javax.swing.JButton();
         colNameTextField = new javax.swing.JTextField();
         updColBtn = new javax.swing.JButton();
+        syncCheckBox = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("CPSC 504 Project");
@@ -110,6 +129,11 @@ public class gitFrame extends javax.swing.JFrame {
 
         pushBtn.setFont(new java.awt.Font("Lucida Grande", 1, 13)); // NOI18N
         pushBtn.setText("Push");
+        pushBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pushBtnActionPerformed(evt);
+            }
+        });
 
         myTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -123,6 +147,17 @@ public class gitFrame extends javax.swing.JFrame {
         myTable.setColumnSelectionAllowed(true);
         myTable.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(myTable);
+        myTable.getModel().addTableModelListener(new TableModelListener(){
+            @Override
+            public void tableChanged(TableModelEvent evt)
+            {
+                System.out.println("table change event captured.");
+                if(evt.getType()== TableModelEvent.UPDATE){
+                    System.out.println("Update event captured.");
+                    onCellUpdated(evt);
+                }
+            }
+        });
 
         clearBtn.setText("Clear all");
         clearBtn.addActionListener(new java.awt.event.ActionListener() {
@@ -142,12 +177,20 @@ public class gitFrame extends javax.swing.JFrame {
             }
         });
 
+        syncCheckBox.setSelected(true);
+        syncCheckBox.setText("Sync");
+        syncCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                syncCheckBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(15, Short.MAX_VALUE)
+                .addContainerGap(11, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 715, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
@@ -162,9 +205,11 @@ public class gitFrame extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(colNameTextField)
                             .addComponent(updColBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(clearBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(syncCheckBox)
+                            .addComponent(clearBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 59, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(loadBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
                             .addComponent(pushBtn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
@@ -185,7 +230,8 @@ public class gitFrame extends javax.swing.JFrame {
                     .addComponent(delColBtn)
                     .addComponent(pushBtn)
                     .addComponent(delRowBtn)
-                    .addComponent(updColBtn))
+                    .addComponent(updColBtn)
+                    .addComponent(syncCheckBox))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(14, Short.MAX_VALUE))
@@ -198,8 +244,10 @@ public class gitFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         DefaultTableModel model= (DefaultTableModel) myTable.getModel();
         int nCol= model.getColumnCount();
-        if(nCol>0)
-            model.addRow(new String[nCol]);    
+        if(nCol>0){
+            model.addRow(new String[nCol]); 
+            pw.println("add\trow");
+        }
     }//GEN-LAST:event_addRowBtnActionPerformed
 
     private void delRowBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delRowBtnActionPerformed
@@ -211,6 +259,7 @@ public class gitFrame extends javax.swing.JFrame {
         DefaultTableModel model= (DefaultTableModel) myTable.getModel();
         for(int i=len-1; i>=0; i--){
             model.removeRow(indexes[i]);
+            pw.println("delete\trow\t"+indexes[i]);
         }
     }//GEN-LAST:event_delRowBtnActionPerformed
 
@@ -222,8 +271,18 @@ public class gitFrame extends javax.swing.JFrame {
             return;       
        // DefaultTableModel tmodel= (DefaultTableModel) myTable.getModel();
        // TableColumnModel cmodel= myTable.getColumnModel();
+        sync= syncCheckBox.isSelected();
+        
         for(int i=len-1; i>=0; i--){
             removeColumn(indexes[i]);
+            if(sync && syncs[indexes[i]])
+                pw.println("delete\tcolumn\t"+getRealIndex(indexes[i]));
+            
+            int nCol= myTable.getColumnCount();
+            for(int j=indexes[i]; j<nCol; j++){
+                syncs[j]= syncs[j+1];
+            }
+            syncs[nCol]= false;
             //cmodel.removeColumn(cmodel.getColumn(indexes[i]));
         }
        // tmodel.setColumnCount(cmodel.getColumnCount());
@@ -233,7 +292,11 @@ public class gitFrame extends javax.swing.JFrame {
         // TODO add your handling code here:
         try {
             br = new BufferedReader(new FileReader(loadPath));
-            pw = new PrintWriter(logPath, "utf-8");
+            pw = new PrintWriter(new FileOutputStream(logPath), true);
+            logbr = new BufferedReader(new FileReader(logPath));
+            
+            headers= new ArrayList<String>();
+            dataset= new ArrayList<ArrayList<String>>();
             
             String[] titles;
             int nCol=-1;
@@ -247,10 +310,21 @@ public class gitFrame extends javax.swing.JFrame {
                     // Reset tables;
                     myTable.setModel(new javax.swing.table.DefaultTableModel(
                         new Object [][]{}, new String []{} ));
+                    myTable.getModel().addTableModelListener(new TableModelListener(){
+                        @Override
+                        public void tableChanged(TableModelEvent evt)
+                        {
+                            if(evt.getType()== TableModelEvent.UPDATE){
+                                onCellUpdated(evt);
+                            }
+                        }
+                    });
                     DefaultTableModel model= (DefaultTableModel) myTable.getModel();
                     // Add columns;
                     for(int i=0; i<nCol; i++){
                         model.addColumn(titles[i]);
+                        syncs[i]=true;
+                        headers.add(titles[i]);
                     }
                     break;
                 }
@@ -261,6 +335,11 @@ public class gitFrame extends javax.swing.JFrame {
                 String[] cells= line.trim().split(",");
                 if(cells.length==nCol){
                     model.addRow(cells);
+                    ArrayList<String> row= new ArrayList<String>();
+                    for(String word: cells){
+                        row.add(word.trim());
+                    }
+                    dataset.add(row);
                 }
             }
             
@@ -276,9 +355,20 @@ public class gitFrame extends javax.swing.JFrame {
 //        TableColumnModel model = myTable.getColumnModel();
 //        int index= model.getColumnCount();
 //        model.addColumn(new TableColumn(index));
-        String header= colNameTextField.getText();
+        
         DefaultTableModel model = (DefaultTableModel)myTable.getModel();
+        int nCol= model.getColumnCount();
+        
+        String header= colNameTextField.getText();
         model.addColumn(header);
+        
+        sync= syncCheckBox.isSelected();
+        if(sync){
+            pw.println("add\tcolumn\t"+header);
+            syncs[nCol]=true;
+        }else{
+            syncs[nCol]=false;
+        }
     }//GEN-LAST:event_addColBtnActionPerformed
 
     private void clearBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearBtnActionPerformed
@@ -293,12 +383,53 @@ public class gitFrame extends javax.swing.JFrame {
         if(index<0)
             return;
         String header= colNameTextField.getText();
+     
         //System.out.println(header+", ");
-        myTable.getColumnModel().getColumn(index).setHeaderValue(header);
-        myTable.updateUI();
-        //DefaultTableModel model = (DefaultTableModel)myTable.getModel();
-
+        //myTable.getColumnModel().getColumn(index).setHeaderValue(header);
+        //myTable.updateUI();
+        DefaultTableModel model = (DefaultTableModel)myTable.getModel();
+        int nCol= model.getColumnCount();
+        String[] names= new String[nCol];
+        for(int i=0; i<nCol; i++){
+            if(i==index)
+                names[i]= header;
+            else
+                names[i]= model.getColumnName(i);
+        }
+        model.setColumnIdentifiers(names);
+        
+        sync= syncCheckBox.isSelected();
+        if(sync)
+            pw.println("update\tcolumn\t"+getRealIndex(index)+"\t"+header);
     }//GEN-LAST:event_updColBtnActionPerformed
+
+    private void syncCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_syncCheckBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_syncCheckBoxActionPerformed
+
+    private void pushBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pushBtnActionPerformed
+        // TODO add your handling code here:    
+        try {
+            PrintWriter datapw = new PrintWriter(pushPath,"utf-8");
+            String line;
+            while((line=logbr.readLine())!=null){
+                String[] cmd= line.trim().split("\t");
+                int len= cmd.length;
+                if(len>1){
+                    if(cmd[0].equalsIgnoreCase("add")){
+                        if(cmd[1].equalsIgnoreCase("row")){
+                            int size= headers.size();
+                            
+                        }
+                    }
+                }
+            }
+            datapw.close();
+        } catch (IOException ex) {
+            Logger.getLogger(gitFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }//GEN-LAST:event_pushBtnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -356,7 +487,69 @@ public class gitFrame extends javax.swing.JFrame {
         }
         
         DefaultTableModel newModel= new DefaultTableModel(cells, names);
-        myTable.setModel(newModel);       
+        myTable.setModel(newModel);  
+        myTable.getModel().addTableModelListener(new TableModelListener(){
+            @Override
+            public void tableChanged(TableModelEvent evt)
+            {
+                if(evt.getType()== TableModelEvent.UPDATE){
+                    onCellUpdated(evt);
+                }
+            }
+        });
+    }
+    
+    private int getRealIndex(int index){
+        int countTempColumn=0;
+        for(int i=0; i<index; i++){
+            if(syncs[i]==false)
+                countTempColumn++;
+        }
+        return index-countTempColumn;
+    }
+    
+    private void onCellUpdated(TableModelEvent evt){
+        System.out.println("onCellUpdated called.");
+        int row= evt.getLastRow();
+        int col= evt.getColumn();
+        
+        //System.out.println("col: "+col+", syncs.length: "+syncs.length);
+        if(col>=0 && syncs[col]){
+            Object value= myTable.getValueAt(row, col);
+            pw.println("update\tcell\t"+row+","+getRealIndex(col)+"\t"+value.toString());
+        }
+    }
+    
+    private void dAddRow(ArrayList<ArrayList<String>> dataset, int size){
+        ArrayList<String> row= new ArrayList<String>(size);
+        for(int i=0; i<size; i++){
+            row.add("");
+        }
+        dataset.add(row);
+    }
+    
+    private void dDeleteRow(ArrayList<ArrayList<String>> dataset, int rowIndex){
+        dataset.remove(rowIndex);
+    }
+    
+    private void dAddColumn(ArrayList<ArrayList<String>> dataset, 
+            ArrayList<String> headers, String name){
+        headers.add(name);
+        for(ArrayList<String> row: dataset){
+            row.add("");
+        }
+    }
+    
+    private void dDeleteColumn(ArrayList<ArrayList<String>> dataset, 
+            ArrayList<String> headers, int columnIndex){
+        headers.remove(columnIndex);
+        for(ArrayList<String> row: dataset){
+            row.remove(columnIndex);
+        }
+    }
+    
+    private void updateHeader(ArrayList<String> headers, int columnIndex, String name){
+        
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -370,6 +563,7 @@ public class gitFrame extends javax.swing.JFrame {
     private javax.swing.JButton loadBtn;
     private javax.swing.JTable myTable;
     private javax.swing.JButton pushBtn;
+    private javax.swing.JCheckBox syncCheckBox;
     private javax.swing.JButton updColBtn;
     // End of variables declaration//GEN-END:variables
 }
