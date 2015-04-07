@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,9 +27,9 @@ public class gitFrame extends javax.swing.JFrame {
     /**
      * Creates new form gitFrame
      */
-    String loadPath= "data.csv";
+    String dataPath= "data.csv";
     String logPath= "log.script";
-    String pushPath= "data_new.csv";
+    String initDataPath= "data_init.csv";
     BufferedReader br;
     PrintWriter pw;
     BufferedReader logbr;
@@ -51,6 +50,7 @@ public class gitFrame extends javax.swing.JFrame {
         initComponents();
     }
     
+    @Override
     protected void finalize(){
         try {
             super.finalize();
@@ -77,13 +77,13 @@ public class gitFrame extends javax.swing.JFrame {
         pushBtn = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         myTable = new javax.swing.JTable();
-        clearBtn = new javax.swing.JButton();
+        resetBtn = new javax.swing.JButton();
         colNameTextField = new javax.swing.JTextField();
         updColBtn = new javax.swing.JButton();
         syncCheckBox = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("CPSC 504 Project");
+        setTitle("CPSC 504 Project - DBGit");
         setResizable(false);
 
         addRowBtn.setText("Add row");
@@ -159,10 +159,10 @@ public class gitFrame extends javax.swing.JFrame {
             }
         });
 
-        clearBtn.setText("Clear all");
-        clearBtn.addActionListener(new java.awt.event.ActionListener() {
+        resetBtn.setText("Reset");
+        resetBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                clearBtnActionPerformed(evt);
+                resetBtnActionPerformed(evt);
             }
         });
 
@@ -208,7 +208,7 @@ public class gitFrame extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(syncCheckBox)
-                            .addComponent(clearBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(resetBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 59, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(loadBtn, javax.swing.GroupLayout.DEFAULT_SIZE, 112, Short.MAX_VALUE)
@@ -222,7 +222,7 @@ public class gitFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(addRowBtn)
                     .addComponent(loadBtn)
-                    .addComponent(clearBtn)
+                    .addComponent(resetBtn)
                     .addComponent(colNameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(addColBtn))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -233,8 +233,8 @@ public class gitFrame extends javax.swing.JFrame {
                     .addComponent(updColBtn)
                     .addComponent(syncCheckBox))
                 .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 324, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(15, Short.MAX_VALUE))
         );
 
         pack();
@@ -290,64 +290,7 @@ public class gitFrame extends javax.swing.JFrame {
 
     private void loadBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadBtnActionPerformed
         // TODO add your handling code here:
-        try {
-            br = new BufferedReader(new FileReader(loadPath));
-            pw = new PrintWriter(new FileOutputStream(logPath), true);
-            logbr = new BufferedReader(new FileReader(logPath));
-            
-            headers= new ArrayList<String>();
-            dataset= new ArrayList<ArrayList<String>>();
-            
-            String[] titles;
-            int nCol=-1;
-            String line;
-            
-            // Set column titles;
-            while((line=br.readLine())!=null){
-                if(!line.trim().equals("")){
-                    titles= line.split(",");
-                    nCol= titles.length;
-                    // Reset tables;
-                    myTable.setModel(new javax.swing.table.DefaultTableModel(
-                        new Object [][]{}, new String []{} ));
-                    myTable.getModel().addTableModelListener(new TableModelListener(){
-                        @Override
-                        public void tableChanged(TableModelEvent evt)
-                        {
-                            if(evt.getType()== TableModelEvent.UPDATE){
-                                onCellUpdated(evt);
-                            }
-                        }
-                    });
-                    DefaultTableModel model= (DefaultTableModel) myTable.getModel();
-                    // Add columns;
-                    for(int i=0; i<nCol; i++){
-                        model.addColumn(titles[i]);
-                        syncs[i]=true;
-                        headers.add(titles[i]);
-                    }
-                    break;
-                }
-            }
-            
-            while((line=br.readLine())!=null){
-                DefaultTableModel model= (DefaultTableModel) myTable.getModel();
-                String[] cells= line.trim().split(",");
-                if(cells.length==nCol){
-                    model.addRow(cells);
-                    ArrayList<String> row= new ArrayList<String>();
-                    for(String word: cells){
-                        row.add(word.trim());
-                    }
-                    dataset.add(row);
-                }
-            }
-            
-            br.close();
-            //pw.close();
-        } catch (IOException ex) {
-            Logger.getLogger(gitFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }       
+       loadData(dataPath);
     }//GEN-LAST:event_loadBtnActionPerformed
 
     private void addColBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addColBtnActionPerformed
@@ -371,11 +314,10 @@ public class gitFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_addColBtnActionPerformed
 
-    private void clearBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearBtnActionPerformed
+    private void resetBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetBtnActionPerformed
         // TODO add your handling code here:
-        myTable.setModel(new javax.swing.table.DefaultTableModel(
-                        new Object [][]{}, new String []{} ));
-    }//GEN-LAST:event_clearBtnActionPerformed
+        loadData(initDataPath);
+    }//GEN-LAST:event_resetBtnActionPerformed
 
     private void updColBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updColBtnActionPerformed
         // TODO add your handling code here:
@@ -410,8 +352,9 @@ public class gitFrame extends javax.swing.JFrame {
     private void pushBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pushBtnActionPerformed
         // TODO add your handling code here:    
         try {
-            PrintWriter datapw = new PrintWriter(pushPath,"utf-8");
+            PrintWriter datapw = new PrintWriter(dataPath,"utf-8");
             String line;
+            // Read the transformation script
             while((line=logbr.readLine())!=null){
                 String[] cmd= line.trim().split("\t");
                 int len= cmd.length;
@@ -419,11 +362,85 @@ public class gitFrame extends javax.swing.JFrame {
                     if(cmd[0].equalsIgnoreCase("add")){
                         if(cmd[1].equalsIgnoreCase("row")){
                             int size= headers.size();
-                            
+                            dAddRow(dataset, size);
+                        }else if(cmd[1].equalsIgnoreCase("column")){
+                            if(len>2){
+                                dAddColumn(dataset, headers, cmd[2]);
+                            }else{
+                                dAddColumn(dataset, headers, String.valueOf(len+1));
+                            }
+                        }
+                    }else if(cmd[0].equalsIgnoreCase("delete")){
+                        if(cmd[1].equalsIgnoreCase("row")){
+                            if(len>2){
+                                try{
+                                    int rowIndex= Integer.parseInt(cmd[2]);
+                                    dDeleteRow(dataset, rowIndex);
+                                }catch(Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                        }else if(cmd[1].equalsIgnoreCase("column")){
+                            if(len>2){
+                                try{
+                                    int columnIndex= Integer.parseInt(cmd[2]);
+                                    dDeleteColumn(dataset, headers, columnIndex);
+                                }catch(Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }else if(cmd[0].equalsIgnoreCase("update")){
+                        if(cmd[1].equalsIgnoreCase("column")){
+                            if(len>3){
+                                try{
+                                   int columnIndex= Integer.parseInt(cmd[2]); 
+                                   dUpdateHeader(headers, columnIndex, cmd[3]);
+                                }catch(Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+                        }else if(cmd[1].equalsIgnoreCase("cell")){
+                            if(len>3){
+                                try{
+                                    String[] coords= cmd[2].split(",");
+                                    if(coords.length!=2)
+                                        continue;
+                                    int rowIndex= Integer.parseInt(coords[0]);
+                                    int columnIndex= Integer.parseInt(coords[1]);
+                                    dUpdateCell(dataset, rowIndex, columnIndex, cmd[3]);
+                                }catch(Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
                         }
                     }
                 }
             }
+            
+            // Write the changes to local file
+            int nCol= headers.size();
+            if(nCol<1){
+                datapw.close();
+                return;
+            }
+            
+            // Print headers first
+            datapw.print(headers.get(0));
+            for(int i=1; i<nCol; i++){
+                datapw.print(", "+headers.get(i));
+            }
+            datapw.println();
+            
+            // Print the data
+            for(ArrayList<String> row: dataset){
+                datapw.print(row.get(0));
+                for(int i=1; i<nCol; i++){
+                    datapw.print(", "+row.get(i));
+                }
+                datapw.println();
+            }
+            
             datapw.close();
         } catch (IOException ex) {
             Logger.getLogger(gitFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -464,6 +481,69 @@ public class gitFrame extends javax.swing.JFrame {
                 new gitFrame().setVisible(true);
             }
         });
+    }
+    
+    private void loadData(String loadPath){
+        try {
+            br = new BufferedReader(new FileReader(loadPath));
+            pw = new PrintWriter(new FileOutputStream(logPath), true);
+            logbr = new BufferedReader(new FileReader(logPath));
+            
+            headers= new ArrayList<String>();
+            dataset= new ArrayList<ArrayList<String>>();
+            
+            String[] titles;
+            int nCol=-1;
+            String line;
+            
+            // Set column titles;
+            while((line=br.readLine())!=null){
+                if(!line.trim().equals("")){
+                    titles= line.split(",");
+                    nCol= titles.length;
+                    // Reset tables;
+                    myTable.setModel(new javax.swing.table.DefaultTableModel(
+                        new Object [][]{}, new String []{} ));
+                    myTable.getModel().addTableModelListener(new TableModelListener(){
+                        @Override
+                        public void tableChanged(TableModelEvent evt)
+                        {
+                            if(evt.getType()== TableModelEvent.UPDATE){
+                                onCellUpdated(evt);
+                            }
+                        }
+                    });
+                    DefaultTableModel model= (DefaultTableModel) myTable.getModel();
+                    // Add columns;
+                    for(int i=0; i<nCol; i++){
+                        model.addColumn(titles[i].trim());
+                        syncs[i]=true;
+                        headers.add(titles[i].trim());
+                    }
+                    break;
+                }
+            }
+            
+            while((line=br.readLine())!=null){
+                DefaultTableModel model= (DefaultTableModel) myTable.getModel();
+                String[] cells= line.split(",");
+                for(int i=0; i<cells.length; i++)
+                    cells[i]= cells[i].trim();
+                if(cells.length==nCol){
+                    model.addRow(cells);
+                    ArrayList<String> row= new ArrayList<String>();
+                    for(String word: cells){
+                        row.add(word.trim());
+                    }
+                    dataset.add(row);
+                }
+            }
+            
+            br.close();
+            //pw.close();
+        } catch (IOException ex) {
+            Logger.getLogger(gitFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void removeColumn(int index){
@@ -509,7 +589,7 @@ public class gitFrame extends javax.swing.JFrame {
     }
     
     private void onCellUpdated(TableModelEvent evt){
-        System.out.println("onCellUpdated called.");
+        //System.out.println("onCellUpdated called.");
         int row= evt.getLastRow();
         int col= evt.getColumn();
         
@@ -523,7 +603,7 @@ public class gitFrame extends javax.swing.JFrame {
     private void dAddRow(ArrayList<ArrayList<String>> dataset, int size){
         ArrayList<String> row= new ArrayList<String>(size);
         for(int i=0; i<size; i++){
-            row.add("");
+            row.add(" ");
         }
         dataset.add(row);
     }
@@ -536,7 +616,7 @@ public class gitFrame extends javax.swing.JFrame {
             ArrayList<String> headers, String name){
         headers.add(name);
         for(ArrayList<String> row: dataset){
-            row.add("");
+            row.add(" ");
         }
     }
     
@@ -548,14 +628,18 @@ public class gitFrame extends javax.swing.JFrame {
         }
     }
     
-    private void updateHeader(ArrayList<String> headers, int columnIndex, String name){
-        
+    private void dUpdateHeader(ArrayList<String> headers, int columnIndex, String name){
+        headers.set(columnIndex, name);
+    }
+    
+    private void dUpdateCell(ArrayList<ArrayList<String>> dataset, 
+            int rowIndex, int columnIndex, String value){
+        dataset.get(rowIndex).set(columnIndex, value);
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addColBtn;
     private javax.swing.JButton addRowBtn;
-    private javax.swing.JButton clearBtn;
     private javax.swing.JTextField colNameTextField;
     private javax.swing.JButton delColBtn;
     private javax.swing.JButton delRowBtn;
@@ -563,6 +647,7 @@ public class gitFrame extends javax.swing.JFrame {
     private javax.swing.JButton loadBtn;
     private javax.swing.JTable myTable;
     private javax.swing.JButton pushBtn;
+    private javax.swing.JButton resetBtn;
     private javax.swing.JCheckBox syncCheckBox;
     private javax.swing.JButton updColBtn;
     // End of variables declaration//GEN-END:variables
