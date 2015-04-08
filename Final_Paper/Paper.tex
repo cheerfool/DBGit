@@ -19,7 +19,7 @@
 \label{sec:introduction}
 This project is built on top of the theoretical framework done in the M.Sc thesis of Arni Thrastarson \cite{arniThesis} and focuses on the first of the four scenarios detailed in the work. The first scenario is about trying to investigate how changes made by a data application can be captured and propagated to a remote data source. The main workflow of this scenario would be a remote (possibly third party) application pulling the data from a data source to use locally. The application will receive a local copy of the data along with a schema mapping to identify which tables the columns in the local copy of the data came from. A user using the application may notice inconsistencies with the data and go to correct it. The changes made by this user are logged in a transformation script and when the time comes to update the data source, the transformation script is sent to the data store and the changes detailed in the script are applied.
 
-In this project, we focus on three different ways a user can use the application to fetch data.
+In this project, we focus on three different ways a user can use the application to fetch data. For the rest of this paper, we shall call each way of data fetching a sub-scenario. 
 \begin{enumerate}
 	\item {When the user chooses to view all the columns in one table}
 	\item {When the user chooses to view a subset of the columns in one table}
@@ -51,6 +51,9 @@ Based on the various classes of changes mentioned in Wrangler \cite{kandel2011wr
 
 \subsection{Transformation Language}
 \label{sec:transformation_language}
+As we designed the transformation language, we realized it did not make sense to work off the simplest of our three sub-scenarios as the transformation language did not adapt well when the complexity of the sub-scenario was increased. Hence, we decided to work off the most complicated of our three sub-scenarios, the situation where an application has pulled a subset of columns from more than one table, and design our transformation language from that point onwards. 
+
+\textbf{\textcolor{green}{more here}}
 
 \subsection{View Maintenance}
 View maintenance \textcolor{red}{cite stuff here}
@@ -59,7 +62,19 @@ View maintenance \textcolor{red}{cite stuff here}
 After designing the transformation language, we decided to implement the scenario workflow in order to show that our transformation language and design decisions could work to update a data source. The only extra step that was not included in \cite{arniThesis} was to allow for the user to choose which changes to sync to the remote data source. \textcolor{red}{add screen shots!! Kailang can write about all the cool things she did here!! :)}
 
 \section{Related Work}
-\textcolor{red}{need stuff here}
+\textcolor{red}{need stuff here can probably reuse the stuff from the project update but will need more + editing}
+\textbf{\textcolor{green}{Stuff in this section is ripped from the project update}}
+One of the largest problems that we foresee is creating a transformation language to track all the possible data changes as well as how to propagate those changes correctly from one source to another. Hence, most of our related work focuses on systems that are similar or areas of work where we feel we can draw inspiration from how they tackled a similar problem to the one we are facing.
+
+\subsection{Data Sharing Systems}
+Data sharing situations are not new; there have been many collaborative data sharing systems (CDSS) \cite{ives2008orchestra, ives2005orchestra, karvounarakis2013collaborative}and data transformation language \cite{kandel2011wrangler, lakshmanan2001schemasql} created to try and address this issue. From CDSS systems, we believe we can examine how it handles schema mapping change propagations to inform our own design as this is exactly the same problem we are facing. 
+
+\subsection{Transformation Languages}
+There is no lack of data transformation tools 
+
+\subsection{View Maintenance}
+Currently we have chosen to only allow data from a single table be viewed in our interface. However, given that this project could be extended in the future to include viewing data that is from multiple tables, we are looking ahead at literature in the view maintenance area to try and predict what challenges our interface might face \cite{ agrawal1997efficient, agrawal2009asynchronous, gupta1999materialized, zhou2007lazy}. We also thought that we might be able to get some ideas on how often to push any possible schema mapping/schema changes as it seems to be a comparable problem to how materialized views need to push its changes to a remote database \cite{agrawal1997efficient, agrawal2009asynchronous, zhou2007lazy}. 
+
 
 \section{Future Work}
 Future extensions of this work can look into testing the transformation language on other data formats like XML to see if it can effectively capture the changes that happen in an XML document. We can also look into how to handle situations where there are multiple concurrent users drawing upon the same data source and what policies should be adopted into order to achieve the best balance between performance and data consistency. Updating the data source too often could cause performance overhead from locking up the data source while updating too infrequently could cause inconsistent data to be propagated to many different users. The amount of effort and operational overhead involved with many people making the same changes would be undesirable. 
