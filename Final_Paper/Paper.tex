@@ -1,0 +1,41 @@
+\documentclass[12pt]{article}
+\begin{document}
+\begin{titlepage}
+\title{\textbf{CPSC 504 Project\\\vspace{3 cm}\Huge{An investigation into an application to manage data transformations and updates}\vspace{2 cm}}}
+\date{\vspace{2 cm} April 14, 2015}
+
+\author{
+ \makebox[1.0\linewidth]{Laura Cang}\\cang@cs.ubc.ca\\
+  \and \makebox[1.0\linewidth]{Kailang Jiang}\\jiangkl@cs.ubc.ca\\
+  \and \makebox[1.0\linewidth]{Jessica Wong}\\jhmwong@cs.ubc.ca\\ 
+}
+\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+
+\newpage
+\section{Introduction}
+The basis 
+
+\section{Motivation}
+In our project, our main focus is on a scenario where the user views any subset of columns from one or more tables, it is important to figure out how this relates to the real world.
+
+\subsection{Example Scenario}
+In our project, we decided to borrow the dataset used in CPSC 304, an introductory relational database course at UBC, to use as the test dataset in our application. This was a movie dataset that we decided to take three columns out of to use
+
+\section{Solution}
+\subsection{Transformation Language}
+\subsection{View Maintenance}
+\subsection{Proof of Concept}
+
+\section{Related Work}
+
+\section{Future Work}
+Future extensions of this work can look into testing the transformation language on other data formats like XML to see if it can effectively capture the changes that happen in an XML document. We can also look into how to handle situations where there are multiple concurrent users drawing upon the same data source and what policies should be adopted into order to achieve the best balance between performance and data consistency. Updating the data source too often could cause performance overhead from locking up the data source while updating too infrequently could cause inconsistent data to be propagated to many different users. The amount of effort and operational overhead involved with many people making the same changes would be undesirable. 
+
+Another extension of the project could be investigating how the data transformations could be integrated into data provenance to help with data conflict resolutions \cite{arniThesis}. As the project currently stands, the remote application can push any type of data to the data source. If the data being pushed to the data source violates any table constraints (e.g., if a user tries to push a non-unique value into a column that has specified that it only takes unique values), the database administrator has to manually resolve that violation. It is possible to investigate whether or not provenance information can be leveraged to help make these decisions thus lowering the workload on the database administrator. A possible example of how to use the provenance information could be using the previous history of the sorts of changes have been accepted for that column or table to determine the likelihood of the current data violation being accepted. Provenance could also be used to determine the likelihood of correctness by the app or user who made the change; as information about who has changed values can be tracked, it is not inconceivable that the statistics of who has made the best or the most correct/acceptable changes can be used in some way.
+
+\bibliographystyle{abbrv}
+\bibliography{final_paper_biblography}
+
+\end{document}
