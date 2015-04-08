@@ -16,7 +16,15 @@
 
 \newpage
 \section{Introduction}
+\label{sec:introduction}
 This project is built on top of the theoretical framework done in the M.Sc thesis of Arni Thrastarson \cite{arniThesis} and focuses on the first of the four scenarios detailed in the work. The first scenario is about trying to investigate how changes made by a data application can be captured and propagated to a remote data source. The main workflow of this scenario would be a remote (possibly third party) application pulling the data from a data source to use locally. The application will receive a local copy of the data along with a schema mapping to identify which tables the columns in the local copy of the data came from. A user using the application may notice inconsistencies with the data and go to correct it. The changes made by this user are logged in a transformation script and when the time comes to update the data source, the transformation script is sent to the data store and the changes detailed in the script are applied.
+
+In this project, we focus on three different ways a user can use the application to fetch data.
+\begin{enumerate}
+	\item {When the user chooses to view all the columns in one table}
+	\item {When the user chooses to view a subset of the columns in one table}
+	\item {When the user chooses to view a subset of the columns in multiple tables}
+\end{enumerate}
 
 \noindent Our primary contributions are:
 \begin{enumerate}
@@ -28,23 +36,27 @@ This project is built on top of the theoretical framework done in the M.Sc thesi
 \end{enumerate}
 
 \section{Motivation}
-In our project, our main focus is on a scenario where the user views any subset of columns from one or more tables, it is important to figure out how this relates to the real world.
+In our project, our main focus is on a scenario where the user views any subset of columns from one or more tables, it is important to figure out how this relates to the real world. The example in \cite{arniThesis} talks about a sports reporter who retrieves select information about basketball players to do an article on. In this case, the reporter only takes out columns regarding a player's name, his high school, and the first team he played on after entering the NBA. Compared to all the information that is stored about NBA players on a main database (e.g., salary, weight, height, number of transfers, agent name, etc.), the reporter has only taken a very small subset of columns. Another example could be a school administrator who wants to decide which students to give awards to purely based on academic merit. He/she could go to the main database storing all student information (e.g., the database could have information regarding a student's name, student number, GPA, guardian contact information, date of birth, allergy/medication information, family doctor contact, etc.) and only choose to view the student number and GPA column so that he/she will not be biased towards any names or gender.
 
-\subsection{Example Scenario}
-In our project, we decided to borrow the dataset used in CPSC 304, an introductory relational database course at UBC, to use as the test dataset in our application. This was a movie dataset that we decided to take three columns out of to use
+An example where a user might need to view a subset of columns in multiple tables would be if the user is trying to find detailed information about proteins found in different microbiological organisms. The microbiological organisms and the various proteins it produces could be stored in one table while detailed information about each protein is stored in another. If a user wanted to see certain characteristics of a protein found in specific organisms, he/she would have use a subset of columns from both the microbiological organism table along with the protein time to get all the relevant information.
+
+\subsection{Motivation used in our project}
+In our project, we decided to borrow the dataset used in CPSC 304, an introductory relational database course at UBC, to use as the test dataset in our application. This was a movie dataset that we decided to take three columns out of to use \textcolor{red}{put stuff here because i don't actually know anything about the dataset}
 
 \section{Solution}
-In this project, we focus on three different ways a user can use the application to fetch data.
+The basic workflow of the scenario described in Section \ref{sec:introduction} will remain the same. However, as the user obtains more flexibility over what columns can be chosen to view in his/her application,  the complexity of the data transformations increase along with the amount of information that must be tracked (see Section \ref{sec:transformation_language}). 
 
-\noindent
+\subsection{Types of Changes Supported}
+Based on the various classes of changes mentioned in Wrangler \cite{kandel2011wrangler}, we decided to focus on two of them: map and reshape. Map changes deal with "[transforming] one input data row to zero, one, or multiple output rows" \cite{kandel2011wrangler}. This essentially means that the row changes that are supported in our application (e.g., add row, delete row, edit value(s) in row(s)) all fall within this class of changes. Reshape changes deal with schema changes. Any change to the columns (e.g., add/remove/rename columns) will fall into this category. The scope of this project does not deal with changing the data type of a column.
 
-\section{Types of Changes Supported}
 \subsection{Transformation Language}
+\label{sec:transformation_language}
+
 \subsection{View Maintenance}
+View maintenance \textcolor{red}{cite stuff here}
+
 \subsection{Proof of Concept}
-In the proof of concept, we had an extra step that was not included in \cite{arniThesis}. We decided to allow for the user to choose which changes to sync to the remote data source. \textcolor{red}{add screen shots!! Kailang can write about all the cool things she did here!! :)}
-
-
+After designing the transformation language, we decided to implement the scenario workflow in order to show that our transformation language and design decisions could work to update a data source. The only extra step that was not included in \cite{arniThesis} was to allow for the user to choose which changes to sync to the remote data source. \textcolor{red}{add screen shots!! Kailang can write about all the cool things she did here!! :)}
 
 \section{Related Work}
 
