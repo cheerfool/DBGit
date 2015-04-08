@@ -1,4 +1,5 @@
 \documentclass[12pt]{article}
+\usepackage{color}
 \begin{document}
 \begin{titlepage}
 \title{\textbf{CPSC 504 Project\\\vspace{3 cm}\Huge{An investigation into an application to manage data transformations and updates}\vspace{2 cm}}}
@@ -15,7 +16,16 @@
 
 \newpage
 \section{Introduction}
-The basis 
+This project is built on top of the theoretical framework done in the M.Sc thesis of Arni Thrastarson \cite{arniThesis} and focuses on the first of the four scenarios detailed in the work. The first scenario is about trying to investigate how changes made by a data application can be captured and propagated to a remote data source. The main workflow of this scenario would be a remote (possibly third party) application pulling the data from a data source to use locally. The application will receive a local copy of the data along with a schema mapping to identify which tables the columns in the local copy of the data came from. A user using the application may notice inconsistencies with the data and go to correct it. The changes made by this user are logged in a transformation script and when the time comes to update the data source, the transformation script is sent to the data store and the changes detailed in the script are applied.
+
+\noindent Our primary contributions are:
+\begin{enumerate}
+	\item{Using logical programming concepts to define a data transformation language that captures changes made to a relational data model}
+	\item{Design decisions about how the relational model should react and handle schema changes}
+	\item{A preliminary investigation into view maintenance policies for the remote datastore}
+	\item{Further detailing the scenario in which an application views a subset of columns from one or more tables in a remote dataset}
+	\item{Deciding which issues to assign to the server side and which to the client side}
+\end{enumerate}
 
 \section{Motivation}
 In our project, our main focus is on a scenario where the user views any subset of columns from one or more tables, it is important to figure out how this relates to the real world.
