@@ -1,6 +1,6 @@
 \documentclass[12pt]{article}
 \usepackage{color}
-\usepackage{tabularx}
+\usepackage[margin=1.0in]{geometry}
 
 \begin{document}
 \begin{titlepage}
@@ -49,6 +49,7 @@ In our project, we decided to borrow the dataset used in CPSC 304, an introducto
 The basic workflow of the scenario described in Section \ref{sec:introduction} will remain the same. However, as the user obtains more flexibility over what columns can be chosen to view in his/her application,  the complexity of the data transformations increase along with the amount of information that must be tracked (see Section \ref{sec:transformation_language}). In this project, we have decided to support the following user changes: adding a column, removing a column, editing a column name, changing a table cell's current value, removing a table cell's value to make it null, adding a row, and removing a row. Any changes that cause a violation in schema definitions (e.g., removing a row's primary key) will be resolved on the server side by the database administrator. This design decision was due to not wanting to restrict the types of users that would be able to use an app to find data to examine. As we have to assume that there could be users unfamiliar with schema/storage restrictions, we decided to ensure that schema violations are resolved by someone with the technical understanding of what error has occurred. 
 
 \subsection{Types of Changes Supported}
+\label{sec:types_of_changes}
 Based on the various classes of changes mentioned in Wrangler \cite{kandel2011wrangler}, we decided to focus on two of them: map and reshape. Map changes deal with "[transforming] one input data row to zero, one, or multiple output rows" \cite{kandel2011wrangler}. This essentially means that the row changes that are supported in our application (e.g., add row, delete row, edit value(s) in row(s)) all fall within this class of changes. Reshape changes deal with schema changes. Any change to the columns (e.g., add/remove/rename columns) will fall into this category. The scope of this project does not deal with changing the data type of a column.
 
 \subsection{Transformation Language}
@@ -159,8 +160,8 @@ removeRow(tableName(primaryKey1:\\primaryKeyValue1, primaryKey2:primaryKeyValue2
 When adding a column, there was a choice between having a column added to all tables that have columns in the current view or having the column added to one of the tables that had columns in the view. Originally we had the column added to all tables that have columns in the current view but quickly realized that it would lead to a lot of update problems along with the fact that it would take up extra memory. In the end, we decided to have the column added to the table with the most columns in the current view. If tables have an equal number of columns in the view, the table can be chosen in one of three ways:
 \begin{itemize}
 \item {Arbitrarily/at random}
-\item{Based on the name of the table (e.g., add the column to the table with the name that is listed first when table names are sorted alphanumerically)}
-\item{Based on the statistics of table usage that the database stores (e.g., the column could be added to the table that is queried more often). However, this would involve some back and forth dialog between the database and the remote application which may not be a good idea for performance or database security measures}
+\item {Based on the name of the table (e.g., add the column to the table with the name that is listed first when table names are sorted alphanumerically)}
+\item {Based on the statistics of table usage that the database stores (e.g., the column could be added to the table that is queried more often). However, this would involve some back and forth dialog between the database and the remote application which may not be a good idea for performance or database security measures}
 \end{itemize}
 
 We decided to choose the second method to resolve any possible conflicts between table choice when adding columns. The add column change is logged as follows: addCol(tableName, nameOfNewCol, timestamp). 
@@ -178,28 +179,33 @@ Although the situation where a user would rename a column is uncommon, we decide
 When editing a value, a user can make either a 1-1 or 1-0 change (i.e., a 1-1 change is when the user can change one value to another while a 1-0 change would be when a user deletes the value). As with the add row functionality (see Section \ref{sec:add_row}), if a user ends up violating schema constraints when editing a value, the database administrator will have to approve/deal with the changes. Some of the possible schema violations include changing a unique value to a non-unique one when the column specifies that it needs to have unique values or deleting a value from a column that has specified that it cannot be null. The edit a value change would be logged into the transformation script as follows: editValue(tableName(columnNameOfEditedValue1: editedValue1, columnNameOfEditedValue2:editedValue2, ..., columnNameOfEditedValueN:editedValueN).
 
 \subsection{View Maintenance}
-View maintenance is also something that factored into our considerations throughout the project. There were long discussions about whether or not we should allow the user to choose when updates would be pushed to the remote database or if the application should choose. In the end, we decided on a mixed-initiative approach where the user would push if certain types or a certain number of changes have occurred while also allowing the user to choose when to push changes. The primary concern was that schema changes (see Section \ref{sec:add_row}, \ref{sec:remove_row}, \ref{sec:add_col}, and \ref{sec:remove_col}) were important enough to push right away as the longer the wait period, the potential for concurrent users becomes greater. Value changes are considered less important; although value changes from one user may conflict with another user, it was decided to use the timestamp to resolve conflicts. The application can push to the remote data source after a certain number of value changes.
+View maintenance is also something that factored into our considerations throughout the project. There were long discussions about whether or not we should allow the user to choose when updates would be pushed to the remote database or if the application should choose. In the end, we decided on a mixed-initiative approach where the user would push if certain types or a certain number of changes have occurred while also allowing the user to choose when to push changes. The primary concern was that schema changes (see Section \ref{sec:add_row}, \ref{sec:remove_row}, \ref{sec:add_col}, and \ref{sec:remove_col}) were important enough to push right away as the longer the wait period, the potential for concurrent users becomes greater. Value changes are considered less important; although value changes from one user may conflict with another user, it was decided to use the timestamp to resolve conflicts. The application can push to the remote data source after a certain number of value changes. As for quantifying the number of changes that should occur before the application automatically pushes to the data source, that has yet to be determined.
 
 \subsection{Proof of Concept}
-After designing the transformation language, we decided to implement the scenario workflow in order to show that our transformation language and design decisions could work to update a data source. The only extra step that was not included in \cite{arniThesis} was to allow for the user to choose which changes to sync to the remote data source. \textcolor{red}{add screen shots!! Kailang can write about all the cool things she did here!! :)}
+After designing the transformation language, we decided to implement the scenario in order to show that our transformation language and design decisions could work to update a data source. The only extra step that was not included in \cite{arniThesis} was to allow for the user to choose which changes to sync to the remote data source. We created an interface using Netbeans and \textcolor{red}{add screen shots!! Kailang can write about all the cool things she did here!! :)}
 
 \section{Related Work}
-\textcolor{red}{need stuff here can probably reuse the stuff from the project update but will need more + editing}
+\textcolor{red}{need stuff here can probably reuse the stuff from the project update but will need more + editing} \\
 \textbf{\textcolor{green}{Stuff in this section is ripped from the project update}}
-One of the largest problems that we foresee is creating a transformation language to track all the possible data changes as well as how to propagate those changes correctly from one source to another. Hence, most of our related work focuses on systems that are similar or areas of work where we feel we can draw inspiration from how they tackled a similar problem to the one we are facing.
 
-\subsection{Data Sharing Systems}
-Data sharing situations are not new; there have been many collaborative data sharing systems (CDSS) \cite{ives2008orchestra, ives2005orchestra, karvounarakis2013collaborative}and data transformation language \cite{kandel2011wrangler, lakshmanan2001schemasql} created to try and address this issue. From CDSS systems, we believe we can examine how it handles schema mapping change propagations to inform our own design as this is exactly the same problem we are facing. 
+\subsection{ETL: Extract, Transform, Load}
+
 
 \subsection{Transformation Languages}
-While there are an abundance of data transformation tools \cite{raman2001potter, kandel2011wrangler}, these tools often focus on visualizing the data transformation rather than the transformation language used to represent the data changes behind the scenes. 
+While there has been a large body of work done on various data transformation tools \cite{kandel2011wrangler, raman2001potter, kandel2012profiler}, these tools often focus on visualizing the data transformation rather than the transformation language used to represent the data changes behind the scenes. In fact, most of the work in the data transformation language domain seems to be classified into one of two categories. Either the work focuses on trying to help uses visualize the data transformations that have occurred \cite{kandel2011wrangler, raman2001potter, kandel2012profiler} or it focuses on modifying existing transformation languages to help with the data transformation process \cite{ilprints409, lakshmanan2001schemasql}. Due to the lack of literature about the specifics of data transformation languages, we decided to cast our net further and examine data transformation language frameworks. There was a minimal amount of literature on using logical programming concepts to create a data transformation language \textcolor{red}{need citation}. The idea was that people find declarative languages like logical programming languages easier to understand as it focuses on the relationships between the data models rather than the method of how to locate a certain piece of information to work with \textcolor{red}{need citation}. There has been research working with declarative data transformation languages for different data models \cite{bry2002towards, lawley2006practical, tarau2009embedded} so we decided to try and model our data transformation language accordingly.
 
-- something about how logical programming concepts popular with being used to declaratively represent data transformations
-- find papers about this
-- stuff
+\textcolor{red}{incorporate into paragraph}
+\cite{bry2002towards} : declarative data transformation language for XML and semi-structured data
+
+\cite{lawley2006practical} : implementation of a pattern based language for transforming data models
+
+\cite{tarau2009embedded} : embedded logical language framework
+
+\subsection{Supported Changes}
+Another part of the system that we had to figure out was the actual scenarios that would be executed on our system. We decided to do a literature search to try and figure out what our system had to support \cite{galhardas:inria-00072476, kandel2011wrangler, kandel2012profiler,rahm2000data, raman2001potter}. From this requirements solicitation, we determined that our data transformation language had to focus on the logical transformations rather than the physical (this is handled by the fact that our data transformation language borrows from logical programming concepts) and that the types of changes we had to support were map and reshape changes (see Section \ref{sec:types_of_changes}) \cite{kandel2011wrangler}.
 
 \subsection{View Maintenance}
-Currently we have chosen to only allow data from a single table be viewed in our interface. However, given that this project could be extended in the future to include viewing data that is from multiple tables, we are looking ahead at literature in the view maintenance area to try and predict what challenges our interface might face \cite{ agrawal1997efficient, agrawal2009asynchronous, gupta1999materialized, zhou2007lazy}. We also thought that we might be able to get some ideas on how often to push any possible schema mapping/schema changes as it seems to be a comparable problem to how materialized views need to push its changes to a remote database \cite{agrawal1997efficient, agrawal2009asynchronous, zhou2007lazy}. 
+Currently we have chosen to only allow data from a single table be viewed in our interface. However, given that this project could be extended in the future to include viewing data that is from multiple tables, we are looking ahead at literature in the view maintenance domain to try and predict what challenges our interface might face \cite{ agrawal1997efficient, agrawal2009asynchronous, gupta1999materialized, zhou2007lazy}. We also thought that we might be able to get some ideas on how often to push any possible schema mapping/schema changes as it seems to be a comparable problem to how materialized views need to push its changes to a remote database \cite{agrawal1997efficient, agrawal2009asynchronous, zhou2007lazy}. 
 
 
 \section{Future Work}
